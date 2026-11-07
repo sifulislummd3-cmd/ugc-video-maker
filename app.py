@@ -14,12 +14,9 @@ from PIL import Image, ImageFilter
 st.set_page_config(page_title="UGC Video Maker", page_icon="🎬", layout="centered")
 
 API_KEY = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
-MODEL = st.secrets.get("GEMINI_MODEL", "gemini-flash-latest")
 
-VOICES = {
-    "বাংলা": ("bn-BD-NabanitaNeural", "Bengali"),
-    "English": ("en-US-AriaNeural", "English"),
-  @st.cache_data(ttl=3600)
+
+@st.cache_data(ttl=3600)
 def pick_model(key):
     pref = st.secrets.get("GEMINI_MODEL", "")
     if pref:
@@ -50,6 +47,10 @@ def pick_model(key):
 
 
 MODEL = pick_model(API_KEY)
+
+VOICES = {
+    "বাংলা": ("bn-BD-NabanitaNeural", "Bengali"),
+    "English": ("en-US-AriaNeural", "English"),
 }
 
 PROMPT = """You are an expert short-form UGC video ad strategist (TikTok, Instagram Reels).
