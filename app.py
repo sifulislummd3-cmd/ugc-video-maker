@@ -19,6 +19,37 @@ MODEL = st.secrets.get("GEMINI_MODEL", "gemini-flash-latest")
 VOICES = {
     "বাংলা": ("bn-BD-NabanitaNeural", "Bengali"),
     "English": ("en-US-AriaNeural", "English"),
+  @st.cache_data(ttl=3600)
+def pick_model(key):
+    pref = st.secrets.get("GEMINI_MODEL", "")
+    if pref:
+        return pref
+    try:
+        client = genai.Client(api_key=key)
+        best, best_score = None, None
+        bad = ("lite", "image", "tts", "live", "audio", "embed",
+               "robotics", "computer", "thinking")
+        for m in client.models.list():
+            name = m.name.replace("models/", "")
+            acts = getattr(m, "supported_actions", None) or []
+            if "generateContent" not in acts or "flash" not in name:
+                continue
+            if any(b in name for b in bad):
+                continue
+            v = re.search(r"gemini-(\d+)(?:\.(\d+))?", name)
+            ver = (int(v.group(1)), int(v.group(2) or 0)) if v else (0, 0)
+            stable = 0 if ("preview" in name or "exp" in name) else 1
+            score = (ver, stable)
+            if best_score is None or score > best_score:
+                best, best_score = name, score
+        if best:
+            return best
+    except Exception:
+        pass
+    return "gemini-2.5-flash"
+
+
+MODEL = pick_model(API_KEY)
 }
 
 PROMPT = """You are an expert short-form UGC video ad strategist (TikTok, Instagram Reels).
